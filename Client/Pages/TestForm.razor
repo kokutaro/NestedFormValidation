@@ -1,11 +1,17 @@
 ﻿<h3>TestForm</h3>
 
 @code {
+
     [CascadingParameter]
     public PersonDto? PersonDto { get; set; }
 
     [CascadingParameter]
     public EditContext EditContext { get; set; } = default!;
+
+    protected override void OnParametersSet()
+    {
+        EditContext.OnValidationStateChanged += (_, _) => StateHasChanged();
+    }
 
     private TestDto TestDto => PersonDto!.TestDto;
 
@@ -17,9 +23,14 @@
 
     private void OnDelete()
     {
+        if (!TestDto.Messages.Any())
+        {
+            return;
+        }
         TestDto.Messages.RemoveAt(0);
         EditContext.Validate();
     }
+
 }
 
 @foreach (var message in TestDto.Messages)
@@ -28,5 +39,5 @@
 }
 
 <MudButton OnClick="@OnAdd" Variant="@Variant.Filled" Color="@Color.Primary">Add</MudButton>
-<MudButton OnClick="@OnDelete" Variant="@Variant.Filled" Color="@Color.Error">Delete</MudButton>
+<MudButton Disabled="@(!TestDto.Messages.Any())" OnClick="@OnDelete" Variant="@Variant.Filled" Color="@Color.Error">Delete</MudButton>
 <ValidationError For="@(() => TestDto.Messages)"/>

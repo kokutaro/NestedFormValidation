@@ -11,6 +11,14 @@ public class DataValidatorMockService : IDataValidatorService
             [nameof(PersonDto.PersonName)] = new()
             {
                 "Server side validation error"
+            },
+            [nameof(AddressDto.AddressLine1)] = new()
+            {
+                "SA"
+            },
+            [nameof(TestDto.Messages)] = new()
+            {
+                "Test Dto"
             }
         };
     }

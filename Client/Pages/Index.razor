@@ -8,6 +8,7 @@
     private readonly EditContext _editContext;
     private readonly ValidationMessageStore _messageStore;
     private FluentValidationValidator? _fluentValidationValidator;
+    private ValidationErrorFinder _validationErrorFinder = default!;
 
     public Index()
     {
@@ -39,6 +40,7 @@
             _messageStore.Add(_editContext.Field(fieldName), errors);
         }
         _editContext.NotifyValidationStateChanged();
+        StateHasChanged();
     }
 
     private void OnInvalidSubmit()
@@ -46,32 +48,20 @@
         _snackbar.Add("Error", Severity.Error);
     }
 
-    private bool HasValidationErrors(string tabName)
-    {
-        if (!FieldAccessors.ContainsKey(tabName))
-        {
-            return false;
-        }
 
-        var fieldAccessors = FieldAccessors[tabName];
-        return fieldAccessors
-            .Select(f => _editContext.GetValidationMessages(f))
-            .Any(x => x.Any());
-    }
-
-    private string GetBadgeText(string tabName) => HasValidationErrors(tabName) ? "!" : "";
-    private Color GetBadgeColor(string tabName) => HasValidationErrors(tabName) ? Color.Error : Color.Transparent;
 }
 
 <CascadingValue Value="@_person">
     <EditForm EditContext="@_editContext" OnValidSubmit="@OnSubmit" OnInvalidSubmit="@OnInvalidSubmit">
+        <ValidationSummary/>
         <FluentValidationValidator @ref="@_fluentValidationValidator"/>
+        <ValidationErrorFinder FieldAccessors="@FieldAccessors" @ref="@_validationErrorFinder"/>
         <MudTextField Variant="@Variant.Outlined" Margin="@Margin.Dense" @bind-Value="@_person.PersonName" Label="PersonName" For="@(() => _person.PersonName)"/>
         <MudTabs PanelClass="pa-2" ApplyEffectsToContainer="@true" Elevation="2" Rounded="@true">
-            <MudTabPanel Text="Address" BadgeColor="@GetBadgeColor(nameof(AddressForm))" BadgeData="@GetBadgeText(nameof(AddressForm))">
+            <MudTabPanel Text="Address" BadgeColor="@_validationErrorFinder.GetBadgeColor(nameof(AddressForm))" BadgeData="@_validationErrorFinder.GetBadgeText(nameof(AddressForm))">
                 <AddressForm/>
             </MudTabPanel>
-            <MudTabPanel Text="Test" BadgeColor="@GetBadgeColor(nameof(TestForm))" BadgeData="@GetBadgeText(nameof(TestForm))">
+            <MudTabPanel Text="Test" BadgeColor="@_validationErrorFinder.GetBadgeColor(nameof(TestForm))" BadgeData="@_validationErrorFinder.GetBadgeText(nameof(TestForm))">
                 <TestForm/>
             </MudTabPanel>
         </MudTabs>
