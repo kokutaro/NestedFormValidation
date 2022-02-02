@@ -1,0 +1,26 @@
+﻿@using Client.Models
+<h3>AddressForm</h3>
+
+@code {
+
+    [CascadingParameter]
+    public PersonDto PersonDto { get; set; } = new();
+
+    [CascadingParameter]
+    public EditContext? EditContext { get; set; }
+
+    private AddressDto AddressDto => PersonDto.AddressDto;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            EditContext?.Validate();
+        }
+        base.OnAfterRender(firstRender);
+    }
+
+}
+
+<MudTextField Variant="@Variant.Outlined" Margin="@Margin.Dense" @bind-Value="@AddressDto.AddressLine1" Label="AddressLine 1" For="@(() => AddressDto.AddressLine1)"/>
+<MudTextField Variant="@Variant.Outlined" Margin="@Margin.Dense" @bind-Value="@AddressDto.AddressLine2" Label="AddressLine 2" For="@(() => AddressDto.AddressLine2)"/>

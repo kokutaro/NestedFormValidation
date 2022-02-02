@@ -1,0 +1,32 @@
+﻿<h3>TestForm</h3>
+
+@code {
+    [CascadingParameter]
+    public PersonDto? PersonDto { get; set; }
+
+    [CascadingParameter]
+    public EditContext EditContext { get; set; } = default!;
+
+    private TestDto TestDto => PersonDto!.TestDto;
+
+    private void OnAdd()
+    {
+        TestDto.Messages.Add("Test");
+        EditContext.Validate();
+    }
+
+    private void OnDelete()
+    {
+        TestDto.Messages.RemoveAt(0);
+        EditContext.Validate();
+    }
+}
+
+@foreach (var message in TestDto.Messages)
+{
+    <MudText>@message</MudText>
+}
+
+<MudButton OnClick="@OnAdd" Variant="@Variant.Filled" Color="@Color.Primary">Add</MudButton>
+<MudButton OnClick="@OnDelete" Variant="@Variant.Filled" Color="@Color.Error">Delete</MudButton>
+<ValidationError For="@(() => TestDto.Messages)"/>
