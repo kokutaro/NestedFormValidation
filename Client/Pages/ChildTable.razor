@@ -1,0 +1,54 @@
+<h3>ChildTable</h3>
+<div>@_messages.LastOrDefault()</div>
+<MudTable T="@AddressDto" @ref="@_table" ServerData="@LoadServerData" Loading="@true" ReadOnly="@true" Dense="@true">
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel T="@AddressDto" SortLabel="@nameof(AddressDto.AddressLine1)" SortBy="@(d => d.AddressLine1)">Addressline 1</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel T="@AddressDto" SortLabel="@(nameof(AddressDto.AddressLine2))" SortBy="@(d => d.AddressLine2)">Addressline 2</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.AddressLine1</MudTd>
+        <MudTd>@context.AddressLine2</MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+@code {
+
+    [CascadingParameter]
+    public Status Status { get; set; }
+
+    private Status _previousStatus;
+    private MudTable<AddressDto>? _table;
+    private List<string> _messages = new();
+    private GetDataRequest _request = new();
+
+
+    protected override void OnParametersSet()
+    {
+        if (Status == _previousStatus)
+        {
+            return;
+        }
+
+        _previousStatus = Status;
+        _table?.ReloadServerData();
+    }
+
+    private async Task<TableData<AddressDto>> LoadServerData(TableState arg)
+    {
+        _messages.Add($"Reloaded:{Status}");
+        _request.Status = Status;
+        var data = await _getDataService.GetDataAsync(_request);
+        StateHasChanged();
+        Console.WriteLine($"OrderBy: {arg.SortLabel} {arg.SortDirection}");
+        return new TableData<AddressDto>
+        {
+            Items = data,
+            TotalItems = data.Count
+        };
+    }
+}

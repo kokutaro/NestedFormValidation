@@ -9,7 +9,15 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
         My Application
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen"></MudDrawer>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="@NavLinkMatch.All">Home</MudNavLink>
+            <MudNavLink Href="/Table/success">Table(Success)</MudNavLink>
+            <MudNavLink Href="/Table/warning">Table(Warning)</MudNavLink>
+            <MudNavLink Href="/Table/fail">Table(Fail)</MudNavLink>
+            <MudNavLink Href="/Table/info">Table(Info)</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="@MaxWidth.False" Class="pt-2">
             @Body

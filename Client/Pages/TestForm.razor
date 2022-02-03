@@ -8,11 +8,6 @@
     [CascadingParameter]
     public EditContext EditContext { get; set; } = default!;
 
-    protected override void OnParametersSet()
-    {
-        EditContext.OnValidationStateChanged += (_, _) => StateHasChanged();
-    }
-
     private TestDto TestDto => PersonDto!.TestDto;
 
     private void OnAdd()

@@ -1,0 +1,69 @@
+@page "/Table/{tableName}"
+
+@code {
+
+    [Parameter]
+    public string? TableName { get; set; }
+
+    private Status _status;
+
+    protected override void OnParametersSet()
+    {
+        _status = TableName switch 
+        {
+            "success" => Status.Success,
+            "fail" => Status.Fail,
+            "warning" => Status.Warning,
+            "info" => Status.Info,
+            _ => Status.Success
+        };
+        if (_status is Status.Success)
+        {
+            _status = ActiveTabIndex switch
+            {
+                0 => Status.Success,
+                1 => Status.First,
+                2 => Status.Second,
+                3 => Status.Third,
+                _ => Status.Success
+            };
+        }
+        base.OnParametersSet();
+    }
+
+    private int _activeTabIndex;
+    private int ActiveTabIndex
+    {
+        get => _activeTabIndex;
+        set
+        {
+            _activeTabIndex = value;
+            _status = value switch
+            {
+                0 => Status.Success,
+                1 => Status.First,
+                2 => Status.Second,
+                3 => Status.Third,
+                _ => Status.Success
+            };
+        }
+    }
+
+}
+
+<CascadingValue Value="@_status">
+    @if (_status is Status.Success or Status.First or Status.Second or Status.Third)
+    {
+        <MudTabs @bind-ActivePanelIndex="@ActiveTabIndex" Rounded="@true" ApplyEffectsToContainer="@true" Elevation="1" PanelClass="pa-2">
+            <MudTabPanel Text="Success"/>
+            <MudTabPanel Text="First"/>
+            <MudTabPanel Text="Second"/>
+            <MudTabPanel Text="Third"/>
+            <ChildTable/>
+        </MudTabs>
+    }
+    else
+    {
+        <ChildTable/>
+    }
+</CascadingValue>
