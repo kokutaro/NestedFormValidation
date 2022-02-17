@@ -9,6 +9,7 @@
     private readonly ValidationMessageStore _messageStore;
     private FluentValidationValidator? _fluentValidationValidator;
     private ValidationErrorFinder _validationErrorFinder = default!;
+    private string? _editText;
 
     public Index()
     {
@@ -37,6 +38,8 @@
         var messages = _dataValidatorService.GetValidationMessages();
         foreach (var (fieldName, errors) in messages)
         {
+            var field = _editContext.Field(fieldName);
+            Console.WriteLine($"FieldModel: {field.Model.ToString()}, FieldName: {field.FieldName}, Message: {errors.Aggregate((a, c) => $"{a},{c}")}");
             _messageStore.Add(_editContext.Field(fieldName), errors);
         }
         _editContext.NotifyValidationStateChanged();
@@ -49,13 +52,58 @@
     }
 
 
+    private Task<IEnumerable<PersonDto>> SearchFunc(string arg)
+    {
+        return Task.FromResult(PersonDto.GetMockData()
+            .Where(x => x.UserCode!.Contains(arg) || x.PersonName!.Contains(arg)));
+    }
+    private PersonDto? _searchPerson;
+
+    private IEnumerable<Word> GetFormattedText()
+    {
+        var isWithinPlaceHolder = false;
+        var buf = new List<char>();
+        var pBuf = new List<char>();
+        
+        for (var i = 0; i < _editText?.Length; i++)
+        {
+            var ch = _editText[i];
+            if (ch == '{')
+            {
+                isWithinPlaceHolder = true;
+                yield return new Word(new string(buf.ToArray()), false);
+                buf.Clear();
+            }
+            if (isWithinPlaceHolder && ch != '}' && ch != '{')
+            {
+                pBuf.Add(ch);
+            }
+            if (isWithinPlaceHolder && ch == '}')
+            {
+                yield return new Word(new string(pBuf.ToArray()), true);
+                pBuf.Clear();
+                isWithinPlaceHolder = false;
+            }
+            if (!isWithinPlaceHolder && ch != '}' && ch != '{')
+            {
+                buf.Add(ch);
+            }
+        }
+
+        if (buf.Any())
+        {
+            yield return new Word(new string(buf.ToArray()), false);
+        }
+    }
+
+    public record Word(string Text, bool IsPlaceHolder);
 }
 
 <CascadingValue Value="@_person">
     <EditForm EditContext="@_editContext" OnValidSubmit="@OnSubmit" OnInvalidSubmit="@OnInvalidSubmit">
-        <ValidationSummary/>
         <FluentValidationValidator @ref="@_fluentValidationValidator"/>
         <ValidationErrorFinder FieldAccessors="@FieldAccessors" @ref="@_validationErrorFinder"/>
+        <MudAutocomplete T="@(PersonDto?)" Variant="@Variant.Outlined" Margin="@Margin.Dense" @bind-Value="@_searchPerson" SearchFunc="@SearchFunc" ToStringFunc="@(p => p is null ? "" : $"{p.UserCode}: {p.PersonName}")"/>
         <MudTextField Variant="@Variant.Outlined" Margin="@Margin.Dense" @bind-Value="@_person.PersonName" Label="PersonName" For="@(() => _person.PersonName)"/>
         <MudTabs PanelClass="pa-2" ApplyEffectsToContainer="@true" Elevation="2" Rounded="@true">
             <MudTabPanel Text="Address" BadgeColor="@_validationErrorFinder.GetBadgeColor(nameof(AddressForm))" BadgeData="@_validationErrorFinder.GetBadgeText(nameof(AddressForm))">
@@ -65,6 +113,18 @@
                 <TestForm/>
             </MudTabPanel>
         </MudTabs>
+        <MudTextField @bind-Value="@_editText" Immediate="@true" Label="Text" Lines="5"/>
+        @foreach (var (text, isPlaceHolder) in GetFormattedText())
+        {
+            @if (isPlaceHolder)
+            {
+                <MudChip Label="@true">@text</MudChip>
+            }
+            else
+            {
+                @text
+            }
+        }
         <MudButton Class="mt-2" ButtonType="@ButtonType.Submit" Color="@Color.Primary" Variant="@Variant.Filled">Submit</MudButton>
     </EditForm>
 </CascadingValue>

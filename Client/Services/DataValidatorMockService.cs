@@ -12,11 +12,11 @@ public class DataValidatorMockService : IDataValidatorService
             {
                 "Server side validation error"
             },
-            [nameof(AddressDto.AddressLine1)] = new()
+            ["AddressDto.AddressLine1"] = new()
             {
                 "SA"
             },
-            [nameof(TestDto.Messages)] = new()
+            ["TestDto.Messages"] = new()
             {
                 "Test Dto"
             }

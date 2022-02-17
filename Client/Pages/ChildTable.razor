@@ -1,9 +1,9 @@
 <h3>ChildTable</h3>
 <div>@_messages.LastOrDefault()</div>
-<MudTable T="@AddressDto" @ref="@_table" ServerData="@LoadServerData" Loading="@true" ReadOnly="@true" Dense="@true">
+<MudTable T="@AddressDto" @ref="@_table" ServerData="@LoadServerData" Loading="@true" ReadOnly="@true" Dense="@true" HeaderClass="blue lighten-4">
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel T="@AddressDto" SortLabel="@nameof(AddressDto.AddressLine1)" SortBy="@(d => d.AddressLine1)">Addressline 1</MudTableSortLabel>
+            <MudTableSortLabel T="@AddressDto" Class="text-white" SortLabel="@nameof(AddressDto.AddressLine1)" SortBy="@(d => d.AddressLine1)">Addressline 1</MudTableSortLabel>
         </MudTh>
         <MudTh>
             <MudTableSortLabel T="@AddressDto" SortLabel="@(nameof(AddressDto.AddressLine2))" SortBy="@(d => d.AddressLine2)">Addressline 2</MudTableSortLabel>
@@ -41,10 +41,9 @@
     private async Task<TableData<AddressDto>> LoadServerData(TableState arg)
     {
         _messages.Add($"Reloaded:{Status}");
-        _request.Status = Status;
-        var data = await _getDataService.GetDataAsync(_request);
+        _request.Status = Status;        
         StateHasChanged();
-        Console.WriteLine($"OrderBy: {arg.SortLabel} {arg.SortDirection}");
+        var data = await _getDataService.GetDataAsync(_request);
         return new TableData<AddressDto>
         {
             Items = data,
