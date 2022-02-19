@@ -11,6 +11,12 @@
     private ValidationErrorFinder _validationErrorFinder = default!;
     private string? _editText;
 
+    private string[] _placeHolders =
+    {
+        "Test",
+        "Name"
+    };
+
     public Index()
     {
         _person = new PersonDto();
@@ -59,15 +65,20 @@
     }
     private PersonDto? _searchPerson;
 
-    private IEnumerable<Word> GetFormattedText()
+    private IEnumerable<IEnumerable<Word>> GetFormattedLines()
+    {
+        return from line in _editText?.Split("\n") ?? Array.Empty<string>() select GetFormattedText(line);
+    }
+
+    private static IEnumerable<Word> GetFormattedText(string text)
     {
         var isWithinPlaceHolder = false;
         var buf = new List<char>();
         var pBuf = new List<char>();
-        
-        for (var i = 0; i < _editText?.Length; i++)
+
+        for (var i = 0; i < text?.Length; i++)
         {
-            var ch = _editText[i];
+            var ch = text[i];
             if (ch == '{')
             {
                 isWithinPlaceHolder = true;
@@ -97,6 +108,16 @@
     }
 
     public record Word(string Text, bool IsPlaceHolder);
+
+    private Color GetChipColor(string text)
+    {
+        if (_placeHolders.Contains(text))
+        {
+            return Color.Default;
+        }
+
+        return Color.Error;
+    }
 }
 
 <CascadingValue Value="@_person">
@@ -113,18 +134,25 @@
                 <TestForm/>
             </MudTabPanel>
         </MudTabs>
-        <MudTextField @bind-Value="@_editText" Immediate="@true" Label="Text" Lines="5"/>
-        @foreach (var (text, isPlaceHolder) in GetFormattedText())
-        {
-            @if (isPlaceHolder)
+        <MudTextField @bind-Value="@_editText" Immediate="@true" Label="Text" Lines="5" Margin="@Margin.Dense" Variant="@Variant.Outlined"/>
+        <div>
+            @foreach (var lines in GetFormattedLines())
             {
-                <MudChip Label="@true">@text</MudChip>
+                <div>
+                    @foreach (var (text, isPlaceHolder) in lines)
+                    {
+                        @if (isPlaceHolder)
+                        {
+                            <MudChip Size="@Size.Small" Color="@GetChipColor(text)" Label="@true">@text</MudChip>
+                        }
+                        else
+                        {
+                            <span>@text</span>
+                        }
+                    }
+                </div>
             }
-            else
-            {
-                @text
-            }
-        }
+        </div>
         <MudButton Class="mt-2" ButtonType="@ButtonType.Submit" Color="@Color.Primary" Variant="@Variant.Filled">Submit</MudButton>
     </EditForm>
 </CascadingValue>
